@@ -96,3 +96,15 @@ function displayResponse(int $http_code,$data){
     header('Content-Type: application/json');
     echo json_encode($data);
 }
+
+/**
+ * Convertie un tableau en une chaine de caractère compréhensible pour LUA
+ */
+function arrayToLuaParams(array $array) :string{
+    $return = '{';
+    foreach ($array as $value) {
+        $return .= $value.',';
+    }
+    $return = trim($return,',').'}';
+    return $return;
+}

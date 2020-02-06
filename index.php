@@ -38,5 +38,22 @@ foreach ($params_rules as $key => $config) {
 if(count($errors) > 0 ){
     displayResponse(400,$errors);
 }else{
+    // Execécuter le LUA
+    // paramètres attendus : 
+    // {Occupation, Departement, Ville, Surface, Annee_const, Vitrage, Travaux, Nb_occupants, T_cons, Syst_actuel, Age_syst,Emetteurs, Syst_ECS_actuel, Chgmt_ECS}
 
+    $lua_params_string = [];
+
+    foreach (['Occupation', 'Departement', 'Ville', 'Surface', 'Annee_const', 'Vitrage', 'Travaux', 'Nb_occupants', 'T_cons', 'Syst_actuel', 'Age_syst','Emetteurs', 'Syst_ECS_actuel', 'Chgmt_ECS'] as $key) {
+
+        $value = $lua_params[$key];
+        if(is_array($value)){
+            $value = arrayToLuaParams($value);
+        }
+        $lua_params_string[] = $value;
+    }
+    $ECO_IN = arrayToLuaParams($lua_params_string);
+
+    // lua -e "ECO_IN=$ECO_IN" Econometre.lua 
+    die('Ok');
 }
