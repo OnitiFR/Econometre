@@ -1,8 +1,6 @@
 <?php
 require_once('./functions.php');
 
-$global_config = require('./config.php');
-
 $params_rules = require('./params_rules.php');
 
 $inputJSON = file_get_contents('php://input');
@@ -59,5 +57,6 @@ if(count($errors) > 0 ){
     }
     $ECO_IN = arrayToLuaParams($lua_params_string,true);
 
-    var_dump($ECO_IN);
+    exec('lua call.lua',$output);
+    var_dump($output);
 }
