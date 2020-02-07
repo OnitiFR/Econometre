@@ -100,10 +100,10 @@ function displayResponse(int $http_code,$data){
 /**
  * Convertie un tableau en une chaine de caractère compréhensible pour LUA
  */
-function arrayToLuaParams(array $array) :string{
+function arrayToLuaParams(array $array, bool $withkeys) :string{
     $return = '{';
-    foreach ($array as $value) {
-        $return .= $value.',';
+    foreach ($array as $key => $value) {
+        $return .= ( $withkeys ? $key.'=' : '').$value.',';
     }
     $return = trim($return,',').'}';
     return $return;

@@ -1,6 +1,8 @@
 <?php
 require_once('./functions.php');
 
+$global_config = require('./config.php');
+
 $params_rules = require('./params_rules.php');
 
 $inputJSON = file_get_contents('php://input');
@@ -8,7 +10,10 @@ $request = json_decode($inputJSON, true);
 
 $errors = [];
 $lua_params = [];
-
+if(!$request){
+    displayResponse(500,['erreur' => 'Aucune requete trouvée']);
+    die();
+}
 foreach ($params_rules as $key => $config) {
     $rules = explode('|',$config['rules']);
     $is_valid = true;
@@ -48,12 +53,11 @@ if(count($errors) > 0 ){
 
         $value = $lua_params[$key];
         if(is_array($value)){
-            $value = arrayToLuaParams($value);
+            $value = arrayToLuaParams($value,false);
         }
-        $lua_params_string[] = $value;
+        $lua_params_string[$key] = $value;
     }
-    $ECO_IN = arrayToLuaParams($lua_params_string);
+    $ECO_IN = arrayToLuaParams($lua_params_string,true);
 
-    // lua -e "ECO_IN=$ECO_IN" Econometre.lua 
-    die('Ok');
+    var_dump($ECO_IN);
 }
