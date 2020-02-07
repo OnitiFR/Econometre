@@ -108,3 +108,7 @@ function arrayToLuaParams(array $array, bool $withkeys) :string{
     $return = trim($return,',').'}';
     return $return;
 }
+
+function addquotes($value) :string{
+    return '"'.$value.'"';
+}

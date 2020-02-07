@@ -17,11 +17,12 @@ return [
     'department' => [
         'rules' => 'is_int_between:1,96|required',
         'output_name' => 'Departement',
-        'transform' => 'intval'
+        'transform' => 'addquotes'
     ],
     'city' => [
         'rules' => 'is_string|required',
-        'output_name' => 'Ville'
+        'output_name' => 'Ville',
+        'transform' => 'addquotes'
     ],
     'constYear' => [
         'rules' => 'is_int_between:1,5|required',
