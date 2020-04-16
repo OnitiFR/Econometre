@@ -1,6 +1,8 @@
 <?php
 require_once('./functions.php');
 
+$configuration = require('./config.php');
+
 $params_rules = require('./params_rules.php');
 
 $inputJSON = file_get_contents('php://input');
@@ -55,8 +57,15 @@ if(count($errors) > 0 ){
         }
         $lua_params_string[$key] = $value;
     }
-    $ECO_IN = arrayToLuaParams($lua_params_string,true);
 
-    exec('lua call.lua',$output);
-    var_dump($output);
+    // Appel au services LUA
+
+    try {
+        $reponse = callLuaFile($configuration,arrayToLuaParams($lua_params_string,true));
+        displayResponse(200,[
+            'results' => $reponse
+        ]);
+    } catch (\Throwable $th) {
+        displayResponse(500,['erreur' => $th->getMessage()]);
+    }
 }

@@ -95,6 +95,7 @@ function displayResponse(int $http_code,$data){
     http_response_code($http_code);
     header('Content-Type: application/json');
     echo json_encode($data);
+    die();
 }
 
 /**
@@ -111,4 +112,46 @@ function arrayToLuaParams(array $array, bool $withkeys) :string{
 
 function addquotes($value) :string{
     return '"'.$value.'"';
+}
+
+/**
+ * Appel le fichier LUA intermédiaire pour avoir la réponse ce MOTEUR_ECO
+ */
+function callLuaFile(array $configuration, string $ECO_IN) :array{
+    $str = 'ECO_IN = '.$ECO_IN;
+
+    $descriptorspec = array(
+    0 => array("pipe", "r"), // stdin
+    1 => array("pipe", "w"), // stdout
+    2 => array("pipe", "w"), // stderr
+    );
+
+    $cwd = $configuration['lua_path'];
+
+    $env = [];
+
+    $process = proc_open('lua '.$configuration['lua_file_name'], $descriptorspec, $pipes, $cwd, $env);
+    if (is_resource($process)) {
+        // on écrit sur le stdin de lua
+        fwrite($pipes[0], $str);
+        fclose($pipes[0]);
+
+        $response = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        $errors = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+
+        // Il est important que vous fermiez les pipes avant d'appeler
+        // proc_close afin d'éviter un verrouillage.
+        $return_value = proc_close($process);
+
+        if($return_value === 0){
+            return json_decode($response,true);
+        }else{
+            throw new Exception($errors);
+        }
+    }else{
+        throw new Exception('Process lua inconnu.');
+    }
 }
