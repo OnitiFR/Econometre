@@ -1,7 +1,10 @@
 ### Installation
 
 - copier le fichier call_oniti.lua dans le même dossier que le fichier Econometre.lua
-- Editer le fichier config.php avec les bonnes valeurs pour lua_file_name si jamais vous l'avez renomé et lua_path correspondant au dossier de Econometre.lua
+- Editer le fichier Config/config.php avec les bonnes valeurs pour lua_file_name si jamais vous l'avez renomé et lua_path correspondant au dossier de Econometre.lua
+- Lancer composer dumpautoload
+
+- Vous pouvez déclarer de nouvelles routes dans index.php
 
 ## Test
 -  lancer php -S localhost:8000

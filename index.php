@@ -1,71 +1,41 @@
 <?php
-require_once('./functions.php');
 
-$configuration = require('./config.php');
+require 'vendor/autoload.php';
 
-$params_rules = require('./params_rules.php');
+use App\Router\Router;
+use App\Validators\ValidatorException;
 
-$inputJSON = file_get_contents('php://input');
-$request = json_decode($inputJSON, true);
+try {
+    $router = new Router($_SERVER['REQUEST_URI']);
 
-$errors = [];
-$lua_params = [];
-if(!$request){
-    displayResponse(500,['erreur' => 'Aucune requete trouvée']);
-    die();
+    $router->post('MoteurEconometre','EconometreController@calcul');
+
+    $router->get('departements',function(){
+        echo 'future routes des départements';
+    });
+
+    $router->get('test','EconometreController@test');
+
+    $router->get('cities',function(){
+        echo 'future routes des cities';
+    });
+
+    $router->post('executions/:type',function($type){
+        echo 'future routes des executions de type '.$type;
+    });
+
+
+
+    $router->run();
+} 
+catch( ValidatorException $ex){
+    displayResponse(422,[
+        'error' => $ex->getMessage(),
+        'erreurs' => $ex->errors ?? []
+    ]);
 }
-foreach ($params_rules as $key => $config) {
-    $rules = explode('|',$config['rules']);
-    $is_valid = true;
-    $value = array_key_exists($key,$request) ? $request[$key] : null;
-    foreach ($rules as $rule) {
-        $is_valid_rule = callFunction($value,$rule);
-        $is_valid = $is_valid && $is_valid_rule;
-
-        $func_infos = getRuleInformations($rule);
-        $func_name = $func_infos['function_name'];
-        if(!$is_valid_rule){
-            $errors[$key][$func_name] = getErrorMessage($key,$rule);
-        }
-    }
-    if(!$is_valid){
-        if(!in_array('required',$rules) && !required($value)){
-            unset($errors[$key]);
-            $is_valid = true;
-        }
-    }
-    // Si tout est OK on allimante le tableau de paramètres
-    if($is_valid){
-        $lua_params[$config['output_name']] = array_key_exists('transform',$config) ? $config['transform']($value) : $value;
-    }
+catch (\Throwable $th) {
+    $code_http = $th->getCode() >= 100 && $th->getCode() <= 500 ? $th->getCode() : 500; 
+    displayResponse($code_http,['erreur' => $th->getMessage()]);
 }
 
-if(count($errors) > 0 ){
-    displayResponse(400,$errors);
-}else{
-    // Execécuter le LUA
-    // paramètres attendus : 
-    // {Occupation, Departement, Ville, Surface, Annee_const, Vitrage, Travaux, Nb_occupants, T_cons, Syst_actuel, Age_syst,Emetteurs, Syst_ECS_actuel, Chgmt_ECS}
-
-    $lua_params_string = [];
-
-    foreach (['Occupation', 'Departement', 'Ville', 'Surface', 'Annee_const', 'Vitrage', 'Travaux', 'Nb_occupants', 'T_cons', 'Syst_actuel', 'Age_syst','Emetteurs', 'Syst_ECS_actuel', 'Chgmt_ECS'] as $key) {
-
-        $value = $lua_params[$key];
-        if(is_array($value)){
-            $value = arrayToLuaParams($value,false);
-        }
-        $lua_params_string[$key] = $value;
-    }
-
-    // Appel au services LUA
-
-    try {
-        $reponse = callLuaFile($configuration,arrayToLuaParams($lua_params_string,true));
-        displayResponse(200,[
-            'results' => $reponse
-        ]);
-    } catch (\Throwable $th) {
-        displayResponse(500,['erreur' => $th->getMessage()]);
-    }
-}
