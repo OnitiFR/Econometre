@@ -14,8 +14,6 @@ try {
         echo 'future routes des départements';
     });
 
-    $router->get('test','EconometreController@test');
-
     $router->get('cities',function(){
         echo 'future routes des cities';
     });

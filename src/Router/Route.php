@@ -22,7 +22,10 @@ class Route
             $function_parts = explode('@',$this->function);
             $namespace = "App\Controllers\\".$function_parts[0];
             $function_parts[0] = new $namespace;
+
+            if(!method_exists($function_parts[0],$function_parts[1])) throw new RouterException("Méthode inconnue : ".$this->function, 500);
             
+
             return call_user_func_array($function_parts,$this->params);
         }
         
